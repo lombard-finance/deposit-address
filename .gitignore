@@ -1,0 +1,5 @@
+.DS_Store
+.idea
+3dparty
+.vscode
+.env
