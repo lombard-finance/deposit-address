@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/btcsuite/btcd v0.24.0
 	github.com/btcsuite/btcd/btcutil v1.1.5
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/ethereum/go-ethereum v1.14.8
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.9.0
