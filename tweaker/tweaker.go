@@ -9,7 +9,7 @@ import (
 )
 
 type Tweaker struct {
-	PublicKey *secp256k1.PublicKey
+	publicKey *secp256k1.PublicKey
 }
 
 func NewTweaker(
@@ -20,18 +20,18 @@ func NewTweaker(
 		return nil, err
 	}
 
-	return &Tweaker{PublicKey: parsedPublicKey}, nil
+	return &Tweaker{publicKey: parsedPublicKey}, nil
 }
 
 // DerivePubkey Derive a new deposit public key from a 32-byte tweak and return the PubKey
-func (d *Tweaker) DerivePubkey(tweakBytes []byte) (*secp256k1.PublicKey, error) {
-	return depositaddr.TweakPublicKey(d.PublicKey, tweakBytes)
+func (t *Tweaker) DerivePubkey(tweakBytes []byte) (*secp256k1.PublicKey, error) {
+	return depositaddr.TweakPublicKey(t.publicKey, tweakBytes)
 }
 
 // DeriveSegwit Derive a new deposit public key from a 32-byte tweak, then build a
 // `KeyWithDestination` value from it
-func (d *Tweaker) DeriveSegwit(tweakBytes []byte, net *chaincfg.Params) (address btcutil.Address, tweakedPublicKey *secp256k1.PublicKey, err error) {
-	tweakedPublicKey, err = d.DerivePubkey(tweakBytes)
+func (t *Tweaker) DeriveSegwit(tweakBytes []byte, net *chaincfg.Params) (address btcutil.Address, tweakedPublicKey *secp256k1.PublicKey, err error) {
+	tweakedPublicKey, err = t.DerivePubkey(tweakBytes)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "tweaking Tweaker public key")
 	}
@@ -44,4 +44,8 @@ func (d *Tweaker) DeriveSegwit(tweakBytes []byte, net *chaincfg.Params) (address
 	address, _ = btcutil.DecodeAddress(tweakedAddr, net)
 
 	return address, tweakedPublicKey, nil
+}
+
+func (t *Tweaker) GetPublicKey() *secp256k1.PublicKey {
+	return t.publicKey
 }
