@@ -12,16 +12,15 @@ type Tweaker struct {
 	PublicKey *secp256k1.PublicKey
 }
 
-func (d *Tweaker) NewTweaker(
+func NewTweaker(
 	publicKey []byte,
-) error {
+) (*Tweaker, error) {
 	parsedPublicKey, err := secp256k1.ParsePubKey(publicKey)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	d.PublicKey = parsedPublicKey
-	return nil
+	return &Tweaker{PublicKey: parsedPublicKey}, nil
 }
 
 // DerivePubkey Derive a new deposit public key from a 32-byte tweak and return the PubKey
