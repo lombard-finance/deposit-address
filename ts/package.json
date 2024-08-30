@@ -1,0 +1,35 @@
+{
+  "name": "deposit-address-ts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "prebuild": "npm ci",
+    "build": "npx tsc -noEmit && npx esbuild ./src/index.ts --conditions=cubist:esbuild --bundle --minify --preserve-symlinks --platform=node --target=node20 --outdir=.",
+    "fmt": "npx prettier --write .",
+    "fmt-check": "npx prettier --check .",
+    "lint": "npx eslint .",
+    "test": "npx jest"
+  },
+  "keywords": [],
+  "author": "Cubist",
+  "license": "MIT OR Apache-2.0",
+  "description": "",
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^22.5.1",
+    "@typescript-eslint/eslint-plugin": "^8.2.0",
+    "esbuild": "^0.23.1",
+    "eslint": "^8.57.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.3",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "@noble/curves": "^1.5.0",
+    "@noble/hashes": "^1.4.0",
+    "bitcoinjs-lib": "^6.1.6"
+  }
+}
