@@ -1,5 +1,5 @@
 {
-  "name": "ts",
+  "name": "deposit-address-ts",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -11,8 +11,8 @@
     "test": "npx jest"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Cubist",
+  "license": "MIT OR Apache-2.0",
   "description": "",
   "devDependencies": {
     "@types/jest": "^29.5.12",
