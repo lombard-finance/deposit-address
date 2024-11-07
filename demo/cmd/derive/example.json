@@ -1,0 +1,14 @@
+{
+    "addresses": [
+        {
+        "btc_address": "bc1q29nrqh3cj5q5r0n7yjea6hezkrxhf6nyfv3afz",
+        "type": "ADDRESS_TYPE_DEPOSIT",
+        "deposit_metadata": {
+            "to_address": "0x57f9672ba603251c9c03b36cabdbbca7ca8cfcf4",
+            "to_blockchain": "DESTINATION_BLOCKCHAIN_ETHEREUM",
+            "referral": "lombard"
+        },
+        "created_at": "1729794078"
+        }
+    ]
+}
