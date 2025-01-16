@@ -12,15 +12,6 @@ import (
 type Address = eth.Address
 type Sha256 = hash.Hash
 
-// Chain type tags
-//
-// These tags are used to distinguish deposit addresses for different chain types
-const (
-	ChainIdSize int   = 32
-	EvmTag      uint8 = 0
-	// TODO define more chain-type identifiers
-)
-
 const (
 	DepositAddrTag = "LombardDepositAddr"
 )
@@ -44,17 +35,17 @@ func depositHasher() Sha256 {
 	return h
 }
 
-// EvmDepositTweak Compute the tweak bytes for an EVM deposit address.
+// depositTweak Compute the tweak bytes for a deposit address.
 //
-// This is defined as
+// This is generally defined as
 //
-//	taggedHash( AuxData || EvmTag || ChainId || LBTCAddress || WalletAddress )
+//	taggedHash( AuxData || EcosystemTag || ChainId || LBTCAddress || WalletAddress )
 //
 // where 'taggedHash' is a sha256 instance as returned by 'depositHasher()',
-// 'EvmTag' is defined above, 'ChainId' is serialized as 32 big-endian bytes,
-// LBTCAddress and WalletAddress are 20-byte EVM addresses, and AuxData is a
-// 32-byte value encoding chain-agnostic auxiliary data.
-func EvmDepositTweak(lbtcContract, wallet Address, chainId, auxData []byte) ([]byte, error) {
+// 'EcosystemTag' is defined in the dedicated file as a type, 'ChainId' is serialized as 32
+// big-endian bytes, LBTCAddress and WalletAddress are byte arrays representing the respective addresses
+// on the selected chain, and AuxData is a 32-byte value encoding chain-agnostic auxiliary data.
+func depositTweak(eTag EcosystemTag, lbtcContract, wallet, chainId, auxData []byte) ([]byte, error) {
 	if len(auxData) != AuxDataSize {
 		return nil, errors.Errorf("wrong size for auxData (got %v, want %v)", len(auxData), AuxDataSize)
 	}
@@ -67,31 +58,32 @@ func EvmDepositTweak(lbtcContract, wallet Address, chainId, auxData []byte) ([]b
 	// aux data (32 bytes)
 	h.Write(auxData[:])
 
-	// EVM tag (1 byte)
-	h.Write([]byte{EvmTag})
+	// ecosystem tag (1 byte)
+	h.Write([]byte{eTag})
 
-	// EVM chain-id (32 bytes)
+	// chain-id (32 bytes) as defined by Lombard documentation
 	// we zero-pad if `chainId` is less than 32 bytes and error if it is more.
 	h.Write(chainId[:])
 
-	// LBTC contract address (20 bytes)
-	h.Write(lbtcContract.Bytes())
+	// LBTC contract address
+	h.Write(lbtcContract)
 
-	// Destination wallet address (20 bytes)
-	h.Write(wallet.Bytes())
+	// Destination wallet address
+	h.Write(wallet)
 
 	return h.Sum(nil), nil
 }
 
-// EvmDepositSegwitPubkey Compute the segwit public key to be used for an EVM deposit.
+// depositSegwitPubkey Compute the segwit public key to be used for a deposit.
 //
+// - 'eTag' is the ecosystem tag to select the
 // - 'pk' is the base (untweaked) public key to tweak
-// - 'lbtcContract' is the EVM address of the destination LBTC bridge contract
-// - 'wallet' is the EVM address that will claim this deposit
-// - 'chainId' is the chain id for the target EVM chain
-func EvmDepositSegwitPubkey(pk *PublicKey, lbtcContract, wallet Address, chainId, auxData []byte) (*PublicKey, error) {
+// - 'lbtcContract' is the address of the LBTC contract or object on the destination chain
+// - 'wallet' is the address that will claim the deposit on the destination chain
+// - 'chainId' is the chain id for the target chain as defined in the Lombard documentation
+func depositSegwitPubkey(eTag EcosystemTag, pk *PublicKey, lbtcContract, wallet, chainId, auxData []byte) (*PublicKey, error) {
 	// compute tweak bytes
-	tweakBytes, err := EvmDepositTweak(lbtcContract, wallet, chainId, auxData)
+	tweakBytes, err := depositTweak(eTag, lbtcContract, wallet, chainId, auxData)
 	if err != nil {
 		return nil, err
 	}
@@ -99,11 +91,11 @@ func EvmDepositSegwitPubkey(pk *PublicKey, lbtcContract, wallet Address, chainId
 	return TweakPublicKey(pk, tweakBytes)
 }
 
-// EvmDepositSegwitAddr Compute the segwit deposit address to be used for an EVM deposit.
-// See EvmDepositSegwitPubkey doc for argument descriptions.
-func EvmDepositSegwitAddr(pk *PublicKey, bridge, wallet Address, chainId, auxData []byte, net *chaincfg.Params) (string, error) {
+// depositSegwitAddr Compute the segwit deposit address to be used for a deposit on the specified chain.
+// See depositSegwitPubkey doc for argument descriptions.
+func depositSegwitAddr(eTag EcosystemTag, pk *PublicKey, bridge, wallet, chainId, auxData []byte, net *chaincfg.Params) (string, error) {
 	// compute the pubkey
-	tpk, err := EvmDepositSegwitPubkey(pk, bridge, wallet, chainId, auxData)
+	tpk, err := depositSegwitPubkey(eTag, pk, bridge, wallet, chainId, auxData)
 	if err != nil {
 		return "", err
 	}

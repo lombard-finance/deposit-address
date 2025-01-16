@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"testing"
+
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 )
 
 // known-answer test values generated from reference rust impl
