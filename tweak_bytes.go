@@ -5,46 +5,32 @@ import (
 	"github.com/pkg/errors"
 )
 
-type BlockchainType string
-
-const (
-	BlockchainTypeEvm BlockchainType = "evm"
-	BlockchainTypeSui BlockchainType = "sui"
-	ChainIdSize       int            = 32
-)
+const SuiAddressLength = 32
 
 // CalcTweakBytes Compute the tweakBytes for a given request, dispatching on `blockchainType`
 func CalcTweakBytes(
-	blockchainType BlockchainType,
-	chainId [ChainIdSize]byte,
+	chainId ChainId,
 	toAddress, lbtcAddress, auxData []byte,
 ) ([]byte, error) {
 
-	switch blockchainType {
-	case BlockchainTypeEvm:
-		// evm chain uses 20-byte address
+	switch chainId.Ecosystem() {
+	case ChainIdEcosystemEVM:
 		if len(lbtcAddress) != eth.AddressLength {
 			return nil, errors.Errorf("bad LbtcAddress (got %d bytes, expected %d)", len(lbtcAddress), eth.AddressLength)
 		}
-
-		lbtcAddr := eth.BytesToAddress(lbtcAddress)
 		if len(toAddress) != eth.AddressLength {
 			return nil, errors.Errorf("bad ToAddress (got %d bytes, expected %d)", len(toAddress), eth.AddressLength)
 		}
-
-		depositAddr := eth.BytesToAddress(toAddress)
-		return EvmDepositTweak(lbtcAddr, depositAddr, chainId[:], auxData)
-	case BlockchainTypeSui:
+		return DepositTweak(lbtcAddress, toAddress, chainId[:], auxData)
+	case ChainIdEcosystemSui:
 		if len(lbtcAddress) != SuiAddressLength {
 			return nil, errors.Errorf("bad LbtcAddress (got %d bytes, expected %d)", len(lbtcAddress), SuiAddressLength)
 		}
-
 		if len(toAddress) != SuiAddressLength {
 			return nil, errors.Errorf("bad ToAddress (got %d bytes, expected %d)", len(toAddress), SuiAddressLength)
 		}
-
-		return SuiDepositTweak(BytesToSuiAddress(lbtcAddress), BytesToSuiAddress(toAddress), chainId[:], auxData)
+		return DepositTweak(lbtcAddress, toAddress, chainId[:], auxData)
 	default:
-		return nil, errors.Errorf("unsupported blockchain type: %s", blockchainType)
+		return nil, errors.Errorf("unsupported blockchain type: %s", chainId.Ecosystem().String())
 	}
 }

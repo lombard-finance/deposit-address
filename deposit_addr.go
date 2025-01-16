@@ -13,7 +13,8 @@ type Address = eth.Address
 type Sha256 = hash.Hash
 
 const (
-	DepositAddrTag = "LombardDepositAddr"
+	DepositAddrTag     = "LombardDepositAddr"
+	DeprecatedChainTag = byte(0)
 )
 
 // Create a tagged hasher used to compute Lombard deposit addresses
@@ -35,17 +36,17 @@ func depositHasher() Sha256 {
 	return h
 }
 
-// depositTweak Compute the tweak bytes for a deposit address.
+// DepositTweak Compute the tweak bytes for a deposit address.
 //
 // This is generally defined as
 //
-//	taggedHash( AuxData || EcosystemTag || ChainId || LBTCAddress || WalletAddress )
+//	taggedHash( AuxData || ChainId || LBTCAddress || WalletAddress )
 //
-// where 'taggedHash' is a sha256 instance as returned by 'depositHasher()',
-// 'EcosystemTag' is defined in the dedicated file as a type, 'ChainId' is serialized as 32
-// big-endian bytes, LBTCAddress and WalletAddress are byte arrays representing the respective addresses
-// on the selected chain, and AuxData is a 32-byte value encoding chain-agnostic auxiliary data.
-func depositTweak(eTag EcosystemTag, lbtcContract, wallet, chainId, auxData []byte) ([]byte, error) {
+// where 'taggedHash' is a sha256 instance as returned by 'depositHasher()', 'ChainId' is a 32 bytes
+// big-endian identifier of the chain, LBTCAddress and WalletAddress are byte arrays representing
+// the respective addresses on the selected chain, and AuxData is a 32-byte value encoding
+// chain-agnostic auxiliary data.
+func DepositTweak(lbtcContract, wallet, chainId, auxData []byte) ([]byte, error) {
 	if len(auxData) != AuxDataSize {
 		return nil, errors.Errorf("wrong size for auxData (got %v, want %v)", len(auxData), AuxDataSize)
 	}
@@ -58,11 +59,11 @@ func depositTweak(eTag EcosystemTag, lbtcContract, wallet, chainId, auxData []by
 	// aux data (32 bytes)
 	h.Write(auxData[:])
 
-	// ecosystem tag (1 byte)
-	h.Write([]byte{eTag})
+	// 1 byte tag previously used to select chain, now deprecated and constant
+	// for backward compatibility
+	h.Write([]byte{DeprecatedChainTag})
 
 	// chain-id (32 bytes) as defined by Lombard documentation
-	// we zero-pad if `chainId` is less than 32 bytes and error if it is more.
 	h.Write(chainId[:])
 
 	// LBTC contract address
@@ -74,16 +75,15 @@ func depositTweak(eTag EcosystemTag, lbtcContract, wallet, chainId, auxData []by
 	return h.Sum(nil), nil
 }
 
-// depositSegwitPubkey Compute the segwit public key to be used for a deposit.
+// DepositSegwitPubkey Compute the segwit public key to be used for a deposit.
 //
-// - 'eTag' is the ecosystem tag to select the
 // - 'pk' is the base (untweaked) public key to tweak
 // - 'lbtcContract' is the address of the LBTC contract or object on the destination chain
 // - 'wallet' is the address that will claim the deposit on the destination chain
 // - 'chainId' is the chain id for the target chain as defined in the Lombard documentation
-func depositSegwitPubkey(eTag EcosystemTag, pk *PublicKey, lbtcContract, wallet, chainId, auxData []byte) (*PublicKey, error) {
+func DepositSegwitPubkey(pk *PublicKey, lbtcContract, wallet, chainId, auxData []byte) (*PublicKey, error) {
 	// compute tweak bytes
-	tweakBytes, err := depositTweak(eTag, lbtcContract, wallet, chainId, auxData)
+	tweakBytes, err := DepositTweak(lbtcContract, wallet, chainId, auxData)
 	if err != nil {
 		return nil, err
 	}
@@ -91,11 +91,11 @@ func depositSegwitPubkey(eTag EcosystemTag, pk *PublicKey, lbtcContract, wallet,
 	return TweakPublicKey(pk, tweakBytes)
 }
 
-// depositSegwitAddr Compute the segwit deposit address to be used for a deposit on the specified chain.
+// DepositSegwitAddr Compute the segwit deposit address to be used for a deposit on the specified chain.
 // See depositSegwitPubkey doc for argument descriptions.
-func depositSegwitAddr(eTag EcosystemTag, pk *PublicKey, bridge, wallet, chainId, auxData []byte, net *chaincfg.Params) (string, error) {
+func DepositSegwitAddr(pk *PublicKey, bridge, wallet, chainId, auxData []byte, net *chaincfg.Params) (string, error) {
 	// compute the pubkey
-	tpk, err := depositSegwitPubkey(eTag, pk, bridge, wallet, chainId, auxData)
+	tpk, err := DepositSegwitPubkey(pk, bridge, wallet, chainId, auxData)
 	if err != nil {
 		return "", err
 	}
