@@ -5,8 +5,9 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"testing"
+
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 
 	"github.com/btcsuite/btcd/chaincfg"
 	eth "github.com/ethereum/go-ethereum/common"
@@ -202,21 +203,21 @@ func TestEthTweakValueRustKat(t *testing.T) {
 		auxData := v4
 
 		// check tweak result
-		tweak, err := EvmDepositTweak(lbtcContractAddr, walletAddr, chainId[:], auxData[:])
+		tweak, err := DepositTweak(lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId[:], auxData[:])
 		if err != nil {
 			panic(fmt.Sprintf("error computing deposit tweak: %v", err))
 		}
 		tweakString := hex.EncodeToString(tweak)
 
 		// check deposit pubkey result
-		tpk, err := EvmDepositSegwitPubkey(pk, lbtcContractAddr, walletAddr, chainId[:], auxData[:])
+		tpk, err := DepositSegwitPubkey(pk, lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId[:], auxData[:])
 		if err != nil {
 			panic(fmt.Sprintf("error tweaking pubkey: %v", err))
 		}
 		tpkString := hex.EncodeToString(tpk.SerializeCompressed())
 
 		// check segwit address
-		segwitAddr, err := EvmDepositSegwitAddr(pk, lbtcContractAddr, walletAddr, chainId[:], auxData[:], params)
+		segwitAddr, err := DepositSegwitAddr(pk, lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId[:], auxData[:], params)
 		if err != nil {
 			panic(fmt.Sprintf("error tweaking addr: %v", err))
 		}
