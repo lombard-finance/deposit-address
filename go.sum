@@ -57,6 +57,12 @@ github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89/go.mod h1:4FA24M
 github.com/jessevdk/go-flags v1.4.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jrick/logrotate v1.0.0/go.mod h1:LNinyqDIJnpAur+b8yyulnQw/wDuN1+BYKlTRt3OuAQ=
 github.com/kkdai/bstream v0.0.0-20161212061736-f391b8402d23/go.mod h1:J+Gs4SYgM6CZQHDETBtE9HaSEkGmuNXF86RwHhHUvq4=
+github.com/lombard-finance/chain v0.0.0-20250204210857-e6c20ba69b01 h1:IC52aY17/XdtTDp/w+e/M7qYmtwWm51siGbmu6MtHWI=
+github.com/lombard-finance/chain v0.0.0-20250204210857-e6c20ba69b01/go.mod h1:lZGCpGc0TcJk6bz6Y8b4oKHQFelh5Yulq7qWvYOqK4Q=
+github.com/lombard-finance/chain v0.0.0-20250205154603-6b313aec67dc h1:SzKftIzvWPKyvS801EczHzgD33lU10LaD+oPoLLnbv0=
+github.com/lombard-finance/chain v0.0.0-20250205154603-6b313aec67dc/go.mod h1:lZGCpGc0TcJk6bz6Y8b4oKHQFelh5Yulq7qWvYOqK4Q=
+github.com/lombard-finance/chain v0.0.0-20250207120945-2d26469daa26 h1:cqJpG+WYSnKWVw2DCb4Yy5Rf3whDfTGSbuPxhudFo78=
+github.com/lombard-finance/chain v0.0.0-20250207120945-2d26469daa26/go.mod h1:lZGCpGc0TcJk6bz6Y8b4oKHQFelh5Yulq7qWvYOqK4Q=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=

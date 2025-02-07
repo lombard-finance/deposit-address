@@ -6,6 +6,7 @@ import (
 
 	"github.com/btcsuite/btcd/chaincfg"
 	eth "github.com/ethereum/go-ethereum/common"
+	"github.com/lombard-finance/chain/chainid"
 	"github.com/pkg/errors"
 )
 
@@ -46,12 +47,9 @@ func depositHasher() Sha256 {
 // big-endian identifier of the chain, LBTCAddress and WalletAddress are byte arrays representing
 // the respective addresses on the selected chain, and AuxData is a 32-byte value encoding
 // chain-agnostic auxiliary data.
-func DepositTweak(lbtcContract, wallet, chainId, auxData []byte) ([]byte, error) {
+func DepositTweak(lbtcContract, wallet []byte, chainId chainid.ChainId, auxData []byte) ([]byte, error) {
 	if len(auxData) != AuxDataSize {
 		return nil, errors.Errorf("wrong size for auxData (got %v, want %v)", len(auxData), AuxDataSize)
-	}
-	if len(chainId) != ChainIdSize {
-		return nil, errors.Errorf("wrong size for chainId (got %v, want %v)", len(chainId), ChainIdSize)
 	}
 
 	h := depositHasher()
@@ -64,7 +62,7 @@ func DepositTweak(lbtcContract, wallet, chainId, auxData []byte) ([]byte, error)
 	h.Write([]byte{DeprecatedChainTag})
 
 	// chain-id (32 bytes) as defined by Lombard documentation
-	h.Write(chainId[:])
+	h.Write(chainId.Bytes())
 
 	// LBTC contract address
 	h.Write(lbtcContract)
@@ -81,7 +79,7 @@ func DepositTweak(lbtcContract, wallet, chainId, auxData []byte) ([]byte, error)
 // - 'lbtcContract' is the address of the LBTC contract or object on the destination chain
 // - 'wallet' is the address that will claim the deposit on the destination chain
 // - 'chainId' is the chain id for the target chain as defined in the Lombard documentation
-func DepositSegwitPubkey(pk *PublicKey, lbtcContract, wallet, chainId, auxData []byte) (*PublicKey, error) {
+func DepositSegwitPubkey(pk *PublicKey, lbtcContract, wallet []byte, chainId chainid.ChainId, auxData []byte) (*PublicKey, error) {
 	// compute tweak bytes
 	tweakBytes, err := DepositTweak(lbtcContract, wallet, chainId, auxData)
 	if err != nil {
@@ -93,7 +91,7 @@ func DepositSegwitPubkey(pk *PublicKey, lbtcContract, wallet, chainId, auxData [
 
 // DepositSegwitAddr Compute the segwit deposit address to be used for a deposit on the specified chain.
 // See depositSegwitPubkey doc for argument descriptions.
-func DepositSegwitAddr(pk *PublicKey, bridge, wallet, chainId, auxData []byte, net *chaincfg.Params) (string, error) {
+func DepositSegwitAddr(pk *PublicKey, bridge, wallet []byte, chainId chainid.ChainId, auxData []byte, net *chaincfg.Params) (string, error) {
 	// compute the pubkey
 	tpk, err := DepositSegwitPubkey(pk, bridge, wallet, chainId, auxData)
 	if err != nil {

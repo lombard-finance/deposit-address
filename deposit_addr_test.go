@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
+	"github.com/lombard-finance/chain/chainid"
+	"github.com/stretchr/testify/require"
 
 	"github.com/btcsuite/btcd/chaincfg"
 	eth "github.com/ethereum/go-ethereum/common"
@@ -198,26 +200,27 @@ func TestEthTweakValueRustKat(t *testing.T) {
 		lbtcContractAddr := eth.BytesToAddress(v1[:20])
 		walletAddr := eth.BytesToAddress(v2[:20])
 		chainIdU64 := binary.BigEndian.Uint64(v3[:8])
-		var chainId [32]byte
-		binary.BigEndian.PutUint64(chainId[24:], chainIdU64)
+		var chainIdBytes [32]byte
+		binary.BigEndian.PutUint64(chainIdBytes[24:], chainIdU64)
+		chainId := chainid.NewUnsafeChainId(chainIdBytes[:])
 		auxData := v4
 
 		// check tweak result
-		tweak, err := DepositTweak(lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId[:], auxData[:])
+		tweak, err := DepositTweak(lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId, auxData[:])
 		if err != nil {
 			panic(fmt.Sprintf("error computing deposit tweak: %v", err))
 		}
 		tweakString := hex.EncodeToString(tweak)
 
 		// check deposit pubkey result
-		tpk, err := DepositSegwitPubkey(pk, lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId[:], auxData[:])
+		tpk, err := DepositSegwitPubkey(pk, lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId, auxData[:])
 		if err != nil {
 			panic(fmt.Sprintf("error tweaking pubkey: %v", err))
 		}
 		tpkString := hex.EncodeToString(tpk.SerializeCompressed())
 
 		// check segwit address
-		segwitAddr, err := DepositSegwitAddr(pk, lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId[:], auxData[:], params)
+		segwitAddr, err := DepositSegwitAddr(pk, lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId, auxData[:], params)
 		if err != nil {
 			panic(fmt.Sprintf("error tweaking addr: %v", err))
 		}
@@ -236,5 +239,97 @@ func TestEthTweakValueRustKat(t *testing.T) {
 		if segwitAddr != knownAnswer.segwitAddr {
 			panic(fmt.Sprintf("addr mismatch:\n%v\n%v", segwitAddr, knownAnswer.segwitAddr))
 		}
+	}
+}
+
+var referenceValues = []struct {
+	testLabel          string
+	rootDepositKey     string
+	auxData            string
+	lbtcContract       string
+	wallet             string
+	chainId            string
+	expectedTweak      string
+	expectedPubkey     string
+	expectedSegwitAddr string
+}{
+	{
+		testLabel:          "Sui Testnet - 1",
+		rootDepositKey:     "0x043dcf7a68429b23a0396ca61c1ab243ccbbcc629ff04c59394458d6db5dd2bb159e0b7a71ef07247b59a0a21b1f1eaee61a40064ade423e926f38550065a43587",
+		auxData:            "2137aefeb756a435f07fceff39a061bd2a062b617bd8857e9c32b44ef2596bc8", // ComputeAuxDataV0(0, [32]byte{0...})
+		lbtcContract:       "54945cd3d15c0012d35a92ed6f1f373157216fc6bdc5bd79b03ee86da3ca455b",
+		wallet:             "0d3c73069aef96e8a1d209e2c96ddefc4b911d025932e414db201be70f0ae15e",
+		chainId:            "010000000000000000000000000000000000000000000000000000004c78adac",
+		expectedTweak:      "c5f14fe401d015c4ea34632e6d775b751e1925fe718e6b339d2a74689b3a0609",
+		expectedPubkey:     "02a2188a8c2449e16c3f50aab677c8be90916a7c7e6ab25a88222fc846257c28fb",
+		expectedSegwitAddr: "tb1q9sjdz0vpnsshhule5kkxvfggvq8lznpck4tay0",
+	},
+	{
+		testLabel:          "Sui Testnet - 2",
+		rootDepositKey:     "0x043dcf7a68429b23a0396ca61c1ab243ccbbcc629ff04c59394458d6db5dd2bb159e0b7a71ef07247b59a0a21b1f1eaee61a40064ade423e926f38550065a43587",
+		auxData:            "2137aefeb756a435f07fceff39a061bd2a062b617bd8857e9c32b44ef2596bc8", // ComputeAuxDataV0(0, [32]byte{0...})
+		lbtcContract:       "54945cd3d15c0012d35a92ed6f1f373157216fc6bdc5bd79b03ee86da3ca455b",
+		wallet:             "5e9ae2ae1c76cb14be16cd2d521f8200c95cc94ab30947c61ade11a0a6439d28",
+		chainId:            "010000000000000000000000000000000000000000000000000000004c78adac",
+		expectedTweak:      "a6d4eb9bcfa5c683513b06fd531184792767f5355402ce23c6dab417696f6392",
+		expectedPubkey:     "0393e2e2e1acc9a702d8b62e990ed9eff4e36589c6cd44e48101a2d3c3c58d5abb",
+		expectedSegwitAddr: "tb1q8uwc6au5765r9jttj949dg6f2qzcqt58svy8c0",
+	},
+	{
+		testLabel:          "Sui Mainnet - 1",
+		rootDepositKey:     "0x043dcf7a68429b23a0396ca61c1ab243ccbbcc629ff04c59394458d6db5dd2bb159e0b7a71ef07247b59a0a21b1f1eaee61a40064ade423e926f38550065a43587",
+		auxData:            "2137aefeb756a435f07fceff39a061bd2a062b617bd8857e9c32b44ef2596bc8", // ComputeAuxDataV0(0, [32]byte{0...})
+		lbtcContract:       "54945cd3d15c0012d35a92ed6f1f373157216fc6bdc5bd79b03ee86da3ca455b",
+		wallet:             "0d3c73069aef96e8a1d209e2c96ddefc4b911d025932e414db201be70f0ae15e",
+		chainId:            "0100000000000000000000000000000000000000000000000000000035834a8a",
+		expectedTweak:      "35b7205e7d5f1b077091f3164e5daed121f4bb27799c57d9acd976a4044a18bd",
+		expectedPubkey:     "02744518bc0dafc22c494f7dc9ec780fa6d9ae53d3be720ee003f672edfba1063b",
+		expectedSegwitAddr: "tb1qk5xk9gfr5r8l57ma2euyyvc8h7kc9etlry3a75",
+	},
+	{
+		testLabel:          "Sui Mainnet - 2",
+		rootDepositKey:     "0x043dcf7a68429b23a0396ca61c1ab243ccbbcc629ff04c59394458d6db5dd2bb159e0b7a71ef07247b59a0a21b1f1eaee61a40064ade423e926f38550065a43587",
+		auxData:            "2137aefeb756a435f07fceff39a061bd2a062b617bd8857e9c32b44ef2596bc8", // ComputeAuxDataV0(0, [32]byte{0...})
+		lbtcContract:       "54945cd3d15c0012d35a92ed6f1f373157216fc6bdc5bd79b03ee86da3ca455b",
+		wallet:             "5e9ae2ae1c76cb14be16cd2d521f8200c95cc94ab30947c61ade11a0a6439d28",
+		chainId:            "0100000000000000000000000000000000000000000000000000000035834a8a",
+		expectedTweak:      "e454f631af7c2f235c372be61a63c58a1b94832e0240cf1a06b9e657df5d9c13",
+		expectedPubkey:     "034a915f6ac8d6c6920a754392338aa2f41a4070d30564d6af3749d80a9b58eb81",
+		expectedSegwitAddr: "tb1qagvmd7y5x5hkkn6avva5mv0thhlnn6ktk30j67",
+	},
+}
+
+func TestWithReferenceValues(t *testing.T) {
+	// just an initial seed to generate constant data for all tests
+	hashVal := sha256.Sum256([]byte("segwit_lombard_tweak_test_rs"))
+	pk := secp256k1.PrivKeyFromBytes(hashVal[:]).PubKey()
+	params := &chaincfg.SigNetParams
+
+	for _, rf := range referenceValues {
+		t.Run(rf.testLabel, func(t *testing.T) {
+			lbtcContractBytes, err := hex.DecodeString(rf.lbtcContract)
+			require.NoError(t, err)
+			walletBytes, err := hex.DecodeString(rf.wallet)
+			require.NoError(t, err)
+			chainId, err := chainid.NewChainIdFromHex(rf.chainId)
+			require.NoError(t, err)
+			auxDataBytes, err := hex.DecodeString(rf.auxData)
+			require.NoError(t, err)
+
+			// check tweak result
+			tweak, err := DepositTweak(lbtcContractBytes, walletBytes, chainId, auxDataBytes)
+			require.NoError(t, err, "error on deposit tweak calculation")
+			require.Equal(t, rf.expectedTweak, hex.EncodeToString(tweak))
+
+			// check deposit pubkey result
+			tpk, err := DepositSegwitPubkey(pk, lbtcContractBytes, walletBytes, chainId, auxDataBytes)
+			require.NoError(t, err, "error tweaking the public key")
+			require.Equal(t, rf.expectedPubkey, hex.EncodeToString(tpk.SerializeCompressed()))
+
+			// check segwit address
+			segwitAddr, err := DepositSegwitAddr(pk, lbtcContractBytes, walletBytes, chainId, auxDataBytes, params)
+			require.NoError(t, err, "error deriving address")
+			require.Equal(t, rf.expectedSegwitAddr, segwitAddr)
+		})
 	}
 }
