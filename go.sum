@@ -63,6 +63,8 @@ github.com/lombard-finance/chain v0.0.0-20250205154603-6b313aec67dc h1:SzKftIzvW
 github.com/lombard-finance/chain v0.0.0-20250205154603-6b313aec67dc/go.mod h1:lZGCpGc0TcJk6bz6Y8b4oKHQFelh5Yulq7qWvYOqK4Q=
 github.com/lombard-finance/chain v0.0.0-20250207120945-2d26469daa26 h1:cqJpG+WYSnKWVw2DCb4Yy5Rf3whDfTGSbuPxhudFo78=
 github.com/lombard-finance/chain v0.0.0-20250207120945-2d26469daa26/go.mod h1:lZGCpGc0TcJk6bz6Y8b4oKHQFelh5Yulq7qWvYOqK4Q=
+github.com/lombard-finance/chain v0.0.0-20250212131652-4b532e884d03 h1:CZ+2ZWDhkO5oZs+rtj267Cp6Gn+LSI4s2Iwa04lTVag=
+github.com/lombard-finance/chain v0.0.0-20250212131652-4b532e884d03/go.mod h1:lZGCpGc0TcJk6bz6Y8b4oKHQFelh5Yulq7qWvYOqK4Q=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=

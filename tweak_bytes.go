@@ -10,12 +10,12 @@ const SuiAddressLength = 32
 
 // CalcTweakBytes Compute the tweakBytes for a given request, dispatching on `blockchainType`
 func CalcTweakBytes(
-	chainId chainid.ChainId,
+	chainId chainid.LChainId,
 	toAddress, lbtcAddress, auxData []byte,
 ) ([]byte, error) {
 
 	switch chainId.(type) {
-	case chainid.EVMChainId:
+	case chainid.EVMLChainId:
 		if len(lbtcAddress) != eth.AddressLength {
 			return nil, errors.Errorf("bad LbtcAddress (got %d bytes, expected %d)", len(lbtcAddress), eth.AddressLength)
 		}
@@ -23,7 +23,7 @@ func CalcTweakBytes(
 			return nil, errors.Errorf("bad ToAddress (got %d bytes, expected %d)", len(toAddress), eth.AddressLength)
 		}
 		return DepositTweak(lbtcAddress, toAddress, chainId, auxData)
-	case chainid.SuiChainId:
+	case chainid.SuiLChainId:
 		if len(lbtcAddress) != SuiAddressLength {
 			return nil, errors.Errorf("bad LbtcAddress (got %d bytes, expected %d)", len(lbtcAddress), SuiAddressLength)
 		}

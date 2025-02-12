@@ -202,7 +202,7 @@ func TestEthTweakValueRustKat(t *testing.T) {
 		chainIdU64 := binary.BigEndian.Uint64(v3[:8])
 		var chainIdBytes [32]byte
 		binary.BigEndian.PutUint64(chainIdBytes[24:], chainIdU64)
-		chainId := chainid.NewUnsafeChainId(chainIdBytes[:])
+		chainId := chainid.NewUnsafeLChainId(chainIdBytes[:])
 		auxData := v4
 
 		// check tweak result
@@ -311,7 +311,7 @@ func TestWithReferenceValues(t *testing.T) {
 			require.NoError(t, err)
 			walletBytes, err := hex.DecodeString(rf.wallet)
 			require.NoError(t, err)
-			chainId, err := chainid.NewChainIdFromHex(rf.chainId)
+			chainId, err := chainid.NewLChainIdFromHex(rf.chainId)
 			require.NoError(t, err)
 			auxDataBytes, err := hex.DecodeString(rf.auxData)
 			require.NoError(t, err)
