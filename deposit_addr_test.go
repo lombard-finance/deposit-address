@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
+	"github.com/lombard-finance/chain/address"
 	"github.com/lombard-finance/chain/chainid"
 	"github.com/stretchr/testify/require"
 
 	"github.com/btcsuite/btcd/chaincfg"
-	eth "github.com/ethereum/go-ethereum/common"
 )
 
 type TestVal struct {
@@ -197,8 +197,10 @@ func TestEthTweakValueRustKat(t *testing.T) {
 		v4 := sha256.Sum256(v3[:])
 		hashVal = v4
 
-		lbtcContractAddr := eth.BytesToAddress(v1[:20])
-		walletAddr := eth.BytesToAddress(v2[:20])
+		lbtcContract, err := address.NewEvmAddress(v1[:20])
+		require.NoError(t, err, "error in test configuration for lbtc contract")
+		wallet, err := address.NewEvmAddress(v2[:20])
+		require.NoError(t, err, "error in test configuration for wallet")
 		chainIdU64 := binary.BigEndian.Uint64(v3[:8])
 		var chainIdBytes [32]byte
 		binary.BigEndian.PutUint64(chainIdBytes[24:], chainIdU64)
@@ -206,21 +208,21 @@ func TestEthTweakValueRustKat(t *testing.T) {
 		auxData := v4
 
 		// check tweak result
-		tweak, err := DepositTweak(lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId, auxData[:])
+		tweak, err := DepositTweak(lbtcContract, wallet, chainId, auxData[:])
 		if err != nil {
 			panic(fmt.Sprintf("error computing deposit tweak: %v", err))
 		}
 		tweakString := hex.EncodeToString(tweak)
 
 		// check deposit pubkey result
-		tpk, err := DepositSegwitPubkey(pk, lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId, auxData[:])
+		tpk, err := DepositSegwitPubkey(pk, lbtcContract, wallet, chainId, auxData[:])
 		if err != nil {
 			panic(fmt.Sprintf("error tweaking pubkey: %v", err))
 		}
 		tpkString := hex.EncodeToString(tpk.SerializeCompressed())
 
 		// check segwit address
-		segwitAddr, err := DepositSegwitAddr(pk, lbtcContractAddr.Bytes(), walletAddr.Bytes(), chainId, auxData[:], params)
+		segwitAddr, err := DepositSegwitAddr(pk, lbtcContract, wallet, chainId, auxData[:], params)
 		if err != nil {
 			panic(fmt.Sprintf("error tweaking addr: %v", err))
 		}
@@ -307,9 +309,9 @@ func TestWithReferenceValues(t *testing.T) {
 
 	for _, rf := range referenceValues {
 		t.Run(rf.testLabel, func(t *testing.T) {
-			lbtcContractBytes, err := hex.DecodeString(rf.lbtcContract)
+			lbtcContract, err := address.NewSuiAddressFromHex(rf.lbtcContract)
 			require.NoError(t, err)
-			walletBytes, err := hex.DecodeString(rf.wallet)
+			wallet, err := address.NewSuiAddressFromHex(rf.wallet)
 			require.NoError(t, err)
 			chainId, err := chainid.NewLChainIdFromHex(rf.chainId)
 			require.NoError(t, err)
@@ -317,17 +319,17 @@ func TestWithReferenceValues(t *testing.T) {
 			require.NoError(t, err)
 
 			// check tweak result
-			tweak, err := DepositTweak(lbtcContractBytes, walletBytes, chainId, auxDataBytes)
+			tweak, err := DepositTweak(lbtcContract, wallet, chainId, auxDataBytes)
 			require.NoError(t, err, "error on deposit tweak calculation")
 			require.Equal(t, rf.expectedTweak, hex.EncodeToString(tweak))
 
 			// check deposit pubkey result
-			tpk, err := DepositSegwitPubkey(pk, lbtcContractBytes, walletBytes, chainId, auxDataBytes)
+			tpk, err := DepositSegwitPubkey(pk, lbtcContract, wallet, chainId, auxDataBytes)
 			require.NoError(t, err, "error tweaking the public key")
 			require.Equal(t, rf.expectedPubkey, hex.EncodeToString(tpk.SerializeCompressed()))
 
 			// check segwit address
-			segwitAddr, err := DepositSegwitAddr(pk, lbtcContractBytes, walletBytes, chainId, auxDataBytes, params)
+			segwitAddr, err := DepositSegwitAddr(pk, lbtcContract, wallet, chainId, auxDataBytes, params)
 			require.NoError(t, err, "error deriving address")
 			require.Equal(t, rf.expectedSegwitAddr, segwitAddr)
 		})
