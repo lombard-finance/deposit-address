@@ -254,6 +254,7 @@ var referenceValues = []struct {
 	expectedTweak      string
 	expectedPubkey     string
 	expectedSegwitAddr string
+	btcParams          chaincfg.Params
 }{
 	{
 		testLabel:          "Sui Testnet - 1",
@@ -265,6 +266,7 @@ var referenceValues = []struct {
 		expectedTweak:      "c5f14fe401d015c4ea34632e6d775b751e1925fe718e6b339d2a74689b3a0609",
 		expectedPubkey:     "02a2188a8c2449e16c3f50aab677c8be90916a7c7e6ab25a88222fc846257c28fb",
 		expectedSegwitAddr: "tb1q9sjdz0vpnsshhule5kkxvfggvq8lznpck4tay0",
+		btcParams:          chaincfg.SigNetParams,
 	},
 	{
 		testLabel:          "Sui Testnet - 2",
@@ -276,6 +278,7 @@ var referenceValues = []struct {
 		expectedTweak:      "a6d4eb9bcfa5c683513b06fd531184792767f5355402ce23c6dab417696f6392",
 		expectedPubkey:     "0393e2e2e1acc9a702d8b62e990ed9eff4e36589c6cd44e48101a2d3c3c58d5abb",
 		expectedSegwitAddr: "tb1q8uwc6au5765r9jttj949dg6f2qzcqt58svy8c0",
+		btcParams:          chaincfg.SigNetParams,
 	},
 	{
 		testLabel:          "Sui Mainnet - 1",
@@ -286,7 +289,8 @@ var referenceValues = []struct {
 		chainId:            "0100000000000000000000000000000000000000000000000000000035834a8a",
 		expectedTweak:      "35b7205e7d5f1b077091f3164e5daed121f4bb27799c57d9acd976a4044a18bd",
 		expectedPubkey:     "02744518bc0dafc22c494f7dc9ec780fa6d9ae53d3be720ee003f672edfba1063b",
-		expectedSegwitAddr: "tb1qk5xk9gfr5r8l57ma2euyyvc8h7kc9etlry3a75",
+		expectedSegwitAddr: "bc1qk5xk9gfr5r8l57ma2euyyvc8h7kc9etlfz2w98",
+		btcParams:          chaincfg.MainNetParams,
 	},
 	{
 		testLabel:          "Sui Mainnet - 2",
@@ -297,7 +301,8 @@ var referenceValues = []struct {
 		chainId:            "0100000000000000000000000000000000000000000000000000000035834a8a",
 		expectedTweak:      "e454f631af7c2f235c372be61a63c58a1b94832e0240cf1a06b9e657df5d9c13",
 		expectedPubkey:     "034a915f6ac8d6c6920a754392338aa2f41a4070d30564d6af3749d80a9b58eb81",
-		expectedSegwitAddr: "tb1qagvmd7y5x5hkkn6avva5mv0thhlnn6ktk30j67",
+		expectedSegwitAddr: "bc1qagvmd7y5x5hkkn6avva5mv0thhlnn6ktuh5ppd",
+		btcParams:          chaincfg.MainNetParams,
 	},
 }
 
@@ -305,7 +310,6 @@ func TestWithReferenceValues(t *testing.T) {
 	// just an initial seed to generate constant data for all tests
 	hashVal := sha256.Sum256([]byte("segwit_lombard_tweak_test_rs"))
 	pk := secp256k1.PrivKeyFromBytes(hashVal[:]).PubKey()
-	params := &chaincfg.SigNetParams
 
 	for _, rf := range referenceValues {
 		t.Run(rf.testLabel, func(t *testing.T) {
@@ -329,7 +333,7 @@ func TestWithReferenceValues(t *testing.T) {
 			require.Equal(t, rf.expectedPubkey, hex.EncodeToString(tpk.SerializeCompressed()))
 
 			// check segwit address
-			segwitAddr, err := DepositSegwitAddr(pk, lbtcContract, wallet, chainId, auxDataBytes, params)
+			segwitAddr, err := DepositSegwitAddr(pk, lbtcContract, wallet, chainId, auxDataBytes, &rf.btcParams)
 			require.NoError(t, err, "error deriving address")
 			require.Equal(t, rf.expectedSegwitAddr, segwitAddr)
 		})
