@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/lombard-finance/chain/address"
-	"github.com/lombard-finance/chain/chainid"
+	"github.com/lombard-finance/ledger-utils/address"
+	"github.com/lombard-finance/ledger-utils/chainid"
 	"github.com/stretchr/testify/require"
 
 	"github.com/btcsuite/btcd/chaincfg"
@@ -204,7 +204,7 @@ func TestEthTweakValueRustKat(t *testing.T) {
 		chainIdU64 := binary.BigEndian.Uint64(v3[:8])
 		var chainIdBytes [32]byte
 		binary.BigEndian.PutUint64(chainIdBytes[24:], chainIdU64)
-		chainId := chainid.NewUnsafeLChainId(chainIdBytes[:])
+		chainId, _ := chainid.NewLChainId(chainIdBytes[:])
 		auxData := v4
 
 		// check tweak result

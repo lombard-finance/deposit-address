@@ -1,8 +1,8 @@
 package deposit_address
 
 import (
-	"github.com/lombard-finance/chain/address"
-	"github.com/lombard-finance/chain/chainid"
+	"github.com/lombard-finance/ledger-utils/address"
+	"github.com/lombard-finance/ledger-utils/chainid"
 	"github.com/pkg/errors"
 )
 
