@@ -40,12 +40,14 @@ func depositHasher() Sha256 {
 //
 // This is generally defined as
 //
-//	taggedHash( AuxData || ChainId || LBTCAddress || WalletAddress )
+//	taggedHash( AuxData || DeprecatedChainTag || LChainId || LBTCAddress || WalletAddress )
 //
-// where 'taggedHash' is a sha256 instance as returned by 'depositHasher()', 'ChainId' is a 32 bytes
-// big-endian identifier of the chain, LBTCAddress and WalletAddress are byte arrays representing
-// the respective addresses on the selected chain, and AuxData is a 32-byte value encoding
-// chain-agnostic auxiliary data.
+// where:
+// - 'taggedHash' is a sha256 instance as returned by 'depositHasher()'
+// - 'AuxData' is a 32-byte value encoding chain-agnostic auxiliary data
+// - 'DeprecatedChainTag' is the zero byte previously used to differentiate among chains
+// - 'LChainId' is a 32 bytes big-endian unique identifier of the chain, internally defined by Lombard
+// - 'LBTCAddress' and 'WalletAddress' are byte arrays representing the respective addresses on the selected chain
 func DepositTweak(lbtcContract, wallet address.Address, chainId chainid.LChainId, auxData []byte) ([]byte, error) {
 	if len(auxData) != AuxDataSize {
 		return nil, errors.Errorf("wrong size for auxData (got %v, want %v)", len(auxData), AuxDataSize)
@@ -75,7 +77,7 @@ func DepositTweak(lbtcContract, wallet address.Address, chainId chainid.LChainId
 // DepositSegwitPubkey Compute the segwit public key to be used for a deposit.
 //
 // - 'pk' is the base (untweaked) public key to tweak
-// - 'lbtcContract' is the address of the LBTC contract or object on the destination chain
+// - 'lbtcContract' is the address of the LBTC contract (EVM), program (Solana), object (Sui) or module (Cosmos) on the destination chain
 // - 'wallet' is the address that will claim the deposit on the destination chain
 // - 'chainId' is the chain id for the target chain as defined in the Lombard documentation
 func DepositSegwitPubkey(pk *PublicKey, lbtcContract, wallet address.Address, chainId chainid.LChainId, auxData []byte) (*PublicKey, error) {
