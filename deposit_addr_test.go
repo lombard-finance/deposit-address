@@ -258,7 +258,7 @@ var referenceValues = []struct {
 }{
 	{
 		testLabel:          "Sui Testnet - 1",
-		rootDepositKey:     "0x043dcf7a68429b23a0396ca61c1ab243ccbbcc629ff04c59394458d6db5dd2bb159e0b7a71ef07247b59a0a21b1f1eaee61a40064ade423e926f38550065a43587",
+		rootDepositKey:     "044bf624ac0ef1d9f7ed5ea11d6decbd91d88abc0c898e40fcbf96cae2e062363fe48862e4615ce9dde9b814a0d6b83fd47695e3946be4911665464dc99e80f89d",
 		auxData:            "2137aefeb756a435f07fceff39a061bd2a062b617bd8857e9c32b44ef2596bc8", // ComputeAuxDataV0(0, [32]byte{0...})
 		lbtcContract:       "54945cd3d15c0012d35a92ed6f1f373157216fc6bdc5bd79b03ee86da3ca455b",
 		wallet:             "0d3c73069aef96e8a1d209e2c96ddefc4b911d025932e414db201be70f0ae15e",
@@ -270,7 +270,7 @@ var referenceValues = []struct {
 	},
 	{
 		testLabel:          "Sui Testnet - 2",
-		rootDepositKey:     "0x043dcf7a68429b23a0396ca61c1ab243ccbbcc629ff04c59394458d6db5dd2bb159e0b7a71ef07247b59a0a21b1f1eaee61a40064ade423e926f38550065a43587",
+		rootDepositKey:     "044bf624ac0ef1d9f7ed5ea11d6decbd91d88abc0c898e40fcbf96cae2e062363fe48862e4615ce9dde9b814a0d6b83fd47695e3946be4911665464dc99e80f89d",
 		auxData:            "2137aefeb756a435f07fceff39a061bd2a062b617bd8857e9c32b44ef2596bc8", // ComputeAuxDataV0(0, [32]byte{0...})
 		lbtcContract:       "54945cd3d15c0012d35a92ed6f1f373157216fc6bdc5bd79b03ee86da3ca455b",
 		wallet:             "5e9ae2ae1c76cb14be16cd2d521f8200c95cc94ab30947c61ade11a0a6439d28",
@@ -282,7 +282,7 @@ var referenceValues = []struct {
 	},
 	{
 		testLabel:          "Sui Mainnet - 1",
-		rootDepositKey:     "0x043dcf7a68429b23a0396ca61c1ab243ccbbcc629ff04c59394458d6db5dd2bb159e0b7a71ef07247b59a0a21b1f1eaee61a40064ade423e926f38550065a43587",
+		rootDepositKey:     "044bf624ac0ef1d9f7ed5ea11d6decbd91d88abc0c898e40fcbf96cae2e062363fe48862e4615ce9dde9b814a0d6b83fd47695e3946be4911665464dc99e80f89d",
 		auxData:            "2137aefeb756a435f07fceff39a061bd2a062b617bd8857e9c32b44ef2596bc8", // ComputeAuxDataV0(0, [32]byte{0...})
 		lbtcContract:       "54945cd3d15c0012d35a92ed6f1f373157216fc6bdc5bd79b03ee86da3ca455b",
 		wallet:             "0d3c73069aef96e8a1d209e2c96ddefc4b911d025932e414db201be70f0ae15e",
@@ -294,7 +294,7 @@ var referenceValues = []struct {
 	},
 	{
 		testLabel:          "Sui Mainnet - 2",
-		rootDepositKey:     "0x043dcf7a68429b23a0396ca61c1ab243ccbbcc629ff04c59394458d6db5dd2bb159e0b7a71ef07247b59a0a21b1f1eaee61a40064ade423e926f38550065a43587",
+		rootDepositKey:     "044bf624ac0ef1d9f7ed5ea11d6decbd91d88abc0c898e40fcbf96cae2e062363fe48862e4615ce9dde9b814a0d6b83fd47695e3946be4911665464dc99e80f89d",
 		auxData:            "2137aefeb756a435f07fceff39a061bd2a062b617bd8857e9c32b44ef2596bc8", // ComputeAuxDataV0(0, [32]byte{0...})
 		lbtcContract:       "54945cd3d15c0012d35a92ed6f1f373157216fc6bdc5bd79b03ee86da3ca455b",
 		wallet:             "5e9ae2ae1c76cb14be16cd2d521f8200c95cc94ab30947c61ade11a0a6439d28",
@@ -307,10 +307,6 @@ var referenceValues = []struct {
 }
 
 func TestWithReferenceValues(t *testing.T) {
-	// just an initial seed to generate constant data for all tests
-	hashVal := sha256.Sum256([]byte("segwit_lombard_tweak_test_rs"))
-	pk := secp256k1.PrivKeyFromBytes(hashVal[:]).PubKey()
-
 	for _, rf := range referenceValues {
 		t.Run(rf.testLabel, func(t *testing.T) {
 			lbtcContract, err := address.NewSuiAddressFromHex(rf.lbtcContract)
@@ -320,6 +316,10 @@ func TestWithReferenceValues(t *testing.T) {
 			chainId, err := chainid.NewLChainIdFromHex(rf.chainId)
 			require.NoError(t, err)
 			auxDataBytes, err := hex.DecodeString(rf.auxData)
+			require.NoError(t, err)
+			pkHex, err := hex.DecodeString(rf.rootDepositKey)
+			require.NoError(t, err)
+			pk, err := secp256k1.ParsePubKey(pkHex)
 			require.NoError(t, err)
 
 			// check tweak result
