@@ -2,10 +2,11 @@ package deposit_address
 
 import (
 	"encoding/hex"
-	"github.com/stretchr/testify/require"
 	"math"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestComputeAuxDataV0(t *testing.T) {
@@ -60,6 +61,63 @@ func TestComputeAuxDataV0(t *testing.T) {
 			require.NoError(t, err)
 			if !reflect.DeepEqual(hex.EncodeToString(got), tt.want) {
 				t.Errorf("ComputeAuxDataV0() = %x, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestComputeAuxDataV1(t *testing.T) {
+	referalData, err := hex.DecodeString("0000000000000000000000000000000000000000000000000000000000000000")
+	require.NoError(t, err)
+
+	type args struct {
+		nonce      uint32
+		referrerId []byte
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "successful with max uint32",
+			args: args{
+				nonce:      math.MaxUint32,
+				referrerId: referalData,
+			},
+			want: "57aedd1ef8765c190f826be6d0c54add6490bb0df5b783c151989d66c8b2b12c",
+		},
+		{
+			name: "successful with max uint32 - 1",
+			args: args{
+				nonce:      math.MaxUint32 - 1,
+				referrerId: referalData,
+			},
+			want: "46b7319fd3fd314c5f9a1fb4ed81f1f19f3ea06173827bd6ec2f8653d23bed9d",
+		},
+		{
+			name: "successful with 0",
+			args: args{
+				nonce:      0,
+				referrerId: referalData,
+			},
+			want: "7eb52f8f0d25a9fd2d7d810ded653ac10c41cbc21696ad073076b8a7d389025a",
+		},
+		{
+			name: "successful with 1",
+			args: args{
+				nonce:      1,
+				referrerId: referalData,
+			},
+			want: "a84442c7706a991e0d45027cf3926385efe3f7b95b19a8b316bdbc1c73fb79b2",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ComputeAuxDataV1(tt.args.nonce, tt.args.referrerId)
+			require.NoError(t, err)
+			if !reflect.DeepEqual(hex.EncodeToString(got), tt.want) {
+				t.Errorf("ComputeAuxDataV1() = %x, want %v", got, tt.want)
 			}
 		})
 	}

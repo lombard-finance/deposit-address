@@ -81,3 +81,8 @@ func ComputeAuxData(nonce uint32, referrerId []byte, version DepositAuxVersion) 
 func ComputeAuxDataV0(nonce uint32, referrerId []byte) ([]byte, error) {
 	return ComputeAuxData(nonce, referrerId, DepositAuxV0)
 }
+
+// ComputeAuxDataV1 Compute the AuxData with version 1
+func ComputeAuxDataV1(nonce uint32, referrerId []byte) ([]byte, error) {
+	return ComputeAuxData(nonce, referrerId, DepositAuxV1)
+}
