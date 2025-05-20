@@ -40,7 +40,7 @@ func auxDepositHasher() Sha256 {
 	return h
 }
 
-// ComputeAuxData Compute the AuxData.
+// computeAuxData Compute the AuxData.
 //
 // This is defined as
 //
@@ -51,7 +51,7 @@ func auxDepositHasher() Sha256 {
 // - 'Version' is a byte useful if different deposit versions should refer to different deposit addresses
 // - 'nonce' allows to generate different deposit addresses given same inputs
 // - 'ReferrerId' is an arbitrary 16 bytes array for application usage
-func ComputeAuxData(nonce uint32, referrerId []byte, version DepositAuxVersion) ([]byte, error) {
+func computeAuxData(nonce uint32, referrerId []byte, version DepositAuxVersion) ([]byte, error) {
 	if len(referrerId) > MaxReferralIdSize {
 		return nil, errors.Errorf("wrong size for referrerId (got %v, want not greater than %v)", len(referrerId), MaxReferralIdSize)
 	}
@@ -79,10 +79,10 @@ func ComputeAuxData(nonce uint32, referrerId []byte, version DepositAuxVersion) 
 
 // ComputeAuxDataV0 Compute the AuxData with version 0
 func ComputeAuxDataV0(nonce uint32, referrerId []byte) ([]byte, error) {
-	return ComputeAuxData(nonce, referrerId, DepositAuxV0)
+	return computeAuxData(nonce, referrerId, DepositAuxV0)
 }
 
 // ComputeAuxDataV1 Compute the AuxData with version 1
 func ComputeAuxDataV1(nonce uint32, referrerId []byte) ([]byte, error) {
-	return ComputeAuxData(nonce, referrerId, DepositAuxV1)
+	return computeAuxData(nonce, referrerId, DepositAuxV1)
 }
