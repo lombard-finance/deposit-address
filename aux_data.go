@@ -3,13 +3,20 @@ package deposit_address
 import (
 	"crypto/sha256"
 	"encoding/binary"
+
 	"github.com/pkg/errors"
 )
 
 const (
 	DepositAuxTag     = "LombardDepositAux"
-	DepositAuxV0      = uint8(0)
 	MaxReferralIdSize = 256
+)
+
+type DepositAuxVersion uint8
+
+const (
+	DepositAuxV0 = DepositAuxVersion(0)
+	DepositAuxV1 = DepositAuxVersion(1)
 )
 
 // GetDepositAuxTagBytes Compute the aux tag bytes.
@@ -33,17 +40,24 @@ func auxDepositHasher() Sha256 {
 	return h
 }
 
-// ComputeAuxDataV0 Compute v0 AuxData given a ReferrerId
+// ComputeAuxData Compute the AuxData according to the provided version. If version is not supported in
+// the ecosystem function returns an error.
 //
 // This is defined as
 //
-//	taggedHash( Version0 || Nonce || ReferrerId )
+//	taggedHash( Version || Nonce || ReferrerId )
 //
-// where 'taggedHash' is a sha256 instance as returned by 'auxDepositHasher()',
-// 'Version0' is the byte 0x00, nonce, and 'ReferrerId' is an arbitrary 16 bytes array.
-func ComputeAuxDataV0(nonce uint32, referrerId []byte) ([]byte, error) {
+// where:
+// - 'taggedHash' is a sha256 instance as returned by 'auxDepositHasher()'
+// - 'Version' is a byte useful if different deposit versions should refer to different deposit addresses
+// - 'nonce' allows to generate different deposit addresses given same inputs
+// - 'ReferrerId' is an arbitrary 16 bytes array for application usage
+func ComputeAuxData(nonce uint32, referrerId []byte, version DepositAuxVersion) ([]byte, error) {
 	if len(referrerId) > MaxReferralIdSize {
 		return nil, errors.Errorf("wrong size for referrerId (got %v, want not greater than %v)", len(referrerId), MaxReferralIdSize)
+	}
+	if version > DepositAuxV1 {
+		return nil, errors.Errorf("version is not supported")
 	}
 
 	nonceBytes := make([]byte, 4)
@@ -51,10 +65,9 @@ func ComputeAuxDataV0(nonce uint32, referrerId []byte) ([]byte, error) {
 
 	h := auxDepositHasher()
 
-	// Version0
-	_, err := h.Write([]byte{DepositAuxV0})
+	_, err := h.Write([]byte{byte(version)})
 	if err != nil {
-		return nil, errors.Errorf("write version %x", []byte{DepositAuxV0})
+		return nil, errors.Errorf("write version %x", []byte{byte(version)})
 	}
 	_, err = h.Write(nonceBytes)
 	if err != nil {
@@ -66,4 +79,14 @@ func ComputeAuxDataV0(nonce uint32, referrerId []byte) ([]byte, error) {
 	}
 
 	return h.Sum(nil), nil
+}
+
+// ComputeAuxDataV0 Compute the AuxData with version 0
+func ComputeAuxDataV0(nonce uint32, referrerId []byte) ([]byte, error) {
+	return ComputeAuxData(nonce, referrerId, DepositAuxV0)
+}
+
+// ComputeAuxDataV1 Compute the AuxData with version 1
+func ComputeAuxDataV1(nonce uint32, referrerId []byte) ([]byte, error) {
+	return ComputeAuxData(nonce, referrerId, DepositAuxV1)
 }
